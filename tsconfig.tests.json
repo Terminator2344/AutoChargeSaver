@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "vitest"]
+  },
+  "include": ["tests"]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

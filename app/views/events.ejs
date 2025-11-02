@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Events - Revenue Recovery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg-dark: #050505;
+        --bg-darker: #0a0a0a;
+        --glass-bg: rgba(20, 10, 0, 0.4);
+        --glass-border: rgba(255, 85, 0, 0.2);
+        --glass-glow: rgba(255, 100, 0, 0.15);
+        --accent-fire: #ff5500;
+        --accent-orange: #f97316;
+        --accent-amber: #fbbf24;
+        --accent-red: #dc2626;
+        --accent-gold: #ffb347;
+        --text-primary: #e5e5e5;
+        --text-secondary: #a3a3a3;
+        --text-muted: #737373;
+        --success: #22c55e;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+      }
+
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: var(--bg-dark);
+        background-image: 
+          radial-gradient(circle at 50% 0%, rgba(26, 10, 0, 0.8) 0%, var(--bg-dark) 80%),
+          radial-gradient(circle at 20% 50%, rgba(255, 85, 0, 0.08) 0%, transparent 60%),
+          radial-gradient(circle at 80% 80%, rgba(251, 191, 36, 0.06) 0%, transparent 60%);
+        background-attachment: fixed;
+        color: var(--text-primary);
+        min-height: 100vh;
+        line-height: 1.6;
+      }
+
+      header {
+        background: rgba(5, 5, 5, 0.85);
+        backdrop-filter: blur(30px) saturate(180%);
+        border-bottom: 1px solid rgba(255, 85, 0, 0.15);
+        padding: 20px 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 1px rgba(255, 85, 0, 0.1);
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 32px;
+      }
+
+      header .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .logo {
+        font-size: 22px;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--accent-fire) 0%, var(--accent-orange) 50%, var(--accent-amber) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 0 40px rgba(255, 85, 0, 0.6);
+        letter-spacing: -0.5px;
+        filter: drop-shadow(0 0 10px rgba(255, 100, 0, 0.4));
+      }
+
+      nav {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      nav a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+      }
+
+      nav a:hover {
+        color: var(--text-primary);
+        background: rgba(255, 85, 0, 0.15);
+        transform: translateY(-1px);
+        box-shadow: 0 0 15px rgba(255, 85, 0, 0.2);
+      }
+
+      nav a.active {
+        color: var(--accent-gold);
+        background: rgba(255, 85, 0, 0.25);
+        box-shadow: 0 0 20px rgba(255, 120, 20, 0.4);
+      }
+
+      .logout-link {
+        color: var(--text-secondary);
+        padding: 8px 16px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+      }
+
+      .logout-link:hover {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--danger);
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+      }
+
+      .filters-section {
+        margin-bottom: 24px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .filter-select {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        color: var(--text-primary);
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .filter-select:hover {
+        border-color: var(--accent-fire);
+        box-shadow: 0 0 10px rgba(255, 85, 0, 0.2);
+      }
+
+      .filter-select:focus {
+        outline: none;
+        border-color: var(--accent-fire);
+        box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.2);
+      }
+
+      main {
+        padding: 48px 0;
+      }
+
+      .header-section {
+        margin-bottom: 40px;
+      }
+
+      h1 {
+        font-size: 42px;
+        font-weight: 800;
+        margin-bottom: 16px;
+        background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-gold) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -1.5px;
+        filter: drop-shadow(0 2px 10px rgba(255, 100, 0, 0.3));
+        text-shadow: 0 0 8px rgba(255, 100, 0, 0.4);
+      }
+
+      .table-wrapper {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 
+          0 8px 32px rgba(0, 0, 0, 0.5),
+          0 0 20px rgba(255, 100, 0, 0.1),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        margin-top: 24px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      thead {
+        background: rgba(0, 0, 0, 0.5);
+      }
+
+      th {
+        padding: 20px;
+        text-align: left;
+        font-weight: 700;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        border-bottom: 2px solid var(--glass-border);
+        background: linear-gradient(to bottom, rgba(255, 85, 0, 0.05), transparent);
+      }
+
+      td {
+        padding: 20px;
+        border-bottom: 1px solid var(--glass-border);
+        color: var(--text-primary);
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      tbody tr {
+        transition: background-color 0.25s ease, box-shadow 0.25s ease;
+      }
+
+      tbody tr:hover {
+        background-color: rgba(255, 80, 0, 0.08);
+        box-shadow: inset 0 0 8px rgba(255, 120, 0, 0.25);
+      }
+
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      @keyframes goldGlow {
+        0%, 100% {
+          box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+          filter: brightness(1);
+        }
+        50% {
+          box-shadow: 0 0 16px rgba(251, 191, 36, 0.5);
+          filter: brightness(1.1);
+        }
+      }
+
+      @keyframes fireFlicker {
+        0%, 100% {
+          box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+          filter: brightness(1);
+        }
+        50% {
+          box-shadow: 0 0 16px rgba(239, 68, 68, 0.5);
+          filter: brightness(1.15);
+        }
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+      }
+
+      .badge-success {
+        background: rgba(34, 197, 94, 0.2);
+        color: var(--success);
+        border: 1px solid rgba(34, 197, 94, 0.4);
+        box-shadow: 0 0 8px rgba(34, 197, 94, 0.2);
+        animation: goldGlow 3s ease-in-out infinite;
+      }
+
+      .badge-success::before {
+        content: '🟢';
+        font-size: 10px;
+      }
+
+      .badge-danger {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--danger);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+        animation: fireFlicker 2.5s ease-in-out infinite;
+      }
+
+      .badge-danger::before {
+        content: '🔴';
+        font-size: 10px;
+      }
+
+      .badge-neutral {
+        background: rgba(148, 163, 184, 0.2);
+        color: var(--text-muted);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+      }
+
+      .type-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: capitalize;
+      }
+
+      .type-payment_failed {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.25));
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+      }
+
+      .type-payment_succeeded {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(22, 163, 74, 0.25));
+        color: #86efac;
+        border: 1px solid rgba(34, 197, 94, 0.4);
+        box-shadow: 0 0 8px rgba(34, 197, 94, 0.2);
+      }
+
+      .type-payment_recovered {
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(217, 119, 6, 0.25));
+        color: #fde047;
+        border: 1px solid rgba(251, 191, 36, 0.4);
+        box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+      }
+
+      .type-subscription_cancelled {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.25));
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+      }
+
+      .status-icon {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+
+      .status-icon.recovered {
+        background: var(--success);
+        box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+        animation: goldGlow 3s ease-in-out infinite;
+      }
+
+      .status-icon.failed {
+        background: var(--danger);
+        box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+        animation: fireFlicker 2.5s ease-in-out infinite;
+      }
+
+      .empty-state-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 80px 40px;
+        text-align: center;
+        box-shadow: 
+          0 8px 32px rgba(0, 0, 0, 0.5),
+          0 0 20px rgba(255, 100, 0, 0.1),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+      }
+
+      .empty-state-card:hover {
+        border-color: rgba(255, 85, 0, 0.4);
+        box-shadow: 
+          0 12px 40px rgba(0, 0, 0, 0.6),
+          0 0 30px rgba(255, 120, 20, 0.25);
+      }
+
+      .empty-state-icon {
+        font-size: 64px;
+        display: block;
+        margin-bottom: 24px;
+        opacity: 0.7;
+        filter: drop-shadow(0 0 20px rgba(255, 100, 0, 0.4));
+      }
+
+      .empty-state-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: var(--text-primary);
+      }
+
+      .empty-state-text {
+        font-size: 16px;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+
+      .pagination {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-top: 32px;
+        justify-content: center;
+      }
+
+      .pagination a {
+        padding: 12px 24px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: 10px;
+        color: var(--text-primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .pagination a:hover {
+        background: rgba(255, 85, 0, 0.25);
+        border-color: var(--accent-fire);
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 20px rgba(255, 120, 20, 0.5);
+      }
+
+      .pagination span {
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 600;
+        padding: 12px 20px;
+        background: var(--glass-bg);
+        border-radius: 10px;
+      }
+
+      .amount-value {
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-orange) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 0 8px rgba(255, 100, 0, 0.4);
+      }
+
+      .date-formatted {
+        font-family: 'Monaco', 'Menlo', monospace;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 0 20px;
+        }
+
+        h1 {
+          font-size: 32px;
+        }
+
+        .table-wrapper {
+          overflow-x: auto;
+          border-radius: 16px;
+        }
+
+        table {
+          min-width: 900px;
+        }
+
+        th, td {
+          padding: 12px 16px;
+          font-size: 13px;
+        }
+
+        header .container {
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        nav {
+          width: 100%;
+          justify-content: center;
+        }
+
+        .empty-state-card {
+          padding: 60px 24px;
+        }
+
+        .empty-state-icon {
+          font-size: 48px;
+        }
+
+        .empty-state-title {
+          font-size: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <div class="logo">Revenue Recovery Assistant</div>
+        <nav>
+          <a href="/dashboard">Dashboard</a>
+          <a href="/dashboard/events" class="active">Events</a>
+          <a href="/logout" class="logout-link">Logout</a>
+        </nav>
+      </div>
+    </header>
+    <main class="container">
+      <div class="header-section">
+      <h1>Events</h1>
+        <div class="filters-section">
+          <label style="color: var(--text-secondary); font-size: 14px; font-weight: 500;">
+            Type:
+            <select class="filter-select" name="type" onchange="applyFilters()" style="margin-left: 8px;">
+              <option value="all" <%= typeof eventType !== 'undefined' && eventType === 'all' ? 'selected' : '' %>>All Types</option>
+              <% if (typeof availableTypes !== 'undefined') { %>
+                <% availableTypes.forEach(function(type) { %>
+                  <option value="<%= type %>" <%= typeof eventType !== 'undefined' && eventType === type ? 'selected' : '' %>><%= type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) %></option>
+                <% }); %>
+              <% } %>
+            </select>
+          </label>
+          <label style="color: var(--text-secondary); font-size: 14px; font-weight: 500;">
+            Channel:
+            <select class="filter-select" name="channel" onchange="applyFilters()" style="margin-left: 8px;">
+              <option value="all" <%= typeof channel !== 'undefined' && channel === 'all' ? 'selected' : '' %>>All Channels</option>
+              <% if (typeof availableChannels !== 'undefined') { %>
+                <% availableChannels.forEach(function(ch) { %>
+                  <option value="<%= ch %>" <%= typeof channel !== 'undefined' && channel === ch ? 'selected' : '' %>><%= ch %></option>
+                <% }); %>
+              <% } %>
+            </select>
+          </label>
+        </div>
+      </div>
+      
+      <script>
+        function applyFilters() {
+          const type = document.querySelector('select[name="type"]').value;
+          const channel = document.querySelector('select[name="channel"]').value;
+          const url = new URL(window.location.href);
+          url.searchParams.set('type', type);
+          url.searchParams.set('channel', channel);
+          url.searchParams.set('page', '1'); // Reset to first page
+          window.location.href = url.toString();
+        }
+      </script>
+
+      <% 
+        // Mock data для демонстрации, если нет реальных данных
+        const hasEvents = typeof events !== 'undefined' && events && events.length > 0;
+        const displayEvents = hasEvents ? events : [
+          {
+            occurredAt: new Date('2025-11-05T12:45:00'),
+            type: 'payment_failed',
+            user: { email: 'andrew@example.com', whopUserId: 'whop_andrew_123' },
+            recovered: false,
+            reason: 'Card expired',
+            channel: 'email',
+            amountCents: 4999
+          },
+          {
+            occurredAt: new Date('2025-11-04T15:30:00'),
+            type: 'payment_succeeded',
+            user: { email: 'john@example.com', whopUserId: 'whop_john_456' },
+            recovered: true,
+            reason: 'click',
+            channel: 'telegram',
+            amountCents: 7900
+          },
+          {
+            occurredAt: new Date('2025-11-03T10:10:00'),
+            type: 'payment_failed',
+            user: { email: 'kate@example.com', whopUserId: 'whop_kate_789' },
+            recovered: false,
+            reason: 'Insufficient funds',
+            channel: 'discord',
+            amountCents: 12000
+          },
+          {
+            occurredAt: new Date('2025-11-02T14:22:00'),
+            type: 'payment_succeeded',
+            user: { email: 'mike@example.com', whopUserId: 'whop_mike_321' },
+            recovered: true,
+            reason: 'window',
+            channel: 'email',
+            amountCents: 2999
+          },
+          {
+            occurredAt: new Date('2025-11-01T09:15:00'),
+            type: 'payment_failed',
+            user: { email: 'sarah@example.com', whopUserId: 'whop_sarah_654' },
+            recovered: false,
+            reason: null,
+            channel: 'telegram',
+            amountCents: 8900
+          }
+        ];
+      %>
+
+      <% if (!hasEvents && displayEvents.length === 5) { %>
+        <!-- Mock данные используются -->
+      <% } %>
+
+      <div class="table-wrapper">
+        <% if (displayEvents.length > 0) { %>
+      <table>
+        <thead>
+          <tr>
+            <th>Occurred At</th>
+            <th>Type</th>
+            <th>User</th>
+                <th>Status</th>
+            <th>Reason</th>
+            <th>Channel</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+              <% displayEvents.forEach(function(e){ %>
+                <tr>
+                  <td>
+                    <span class="date-formatted">
+                      <%= new Date(e.occurredAt).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) %>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="type-badge type-<%= e.type %>">
+                      <%= e.type.replace(/_/g, ' ') %>
+                    </span>
+                  </td>
+                  <td>
+                    <%= e.user?.email || e.user?.whopUserId || '-' %>
+                  </td>
+                  <td>
+                    <% if (e.recovered) { %>
+                      <span class="badge badge-success">Recovered</span>
+                    <% } else { %>
+                      <span class="badge badge-danger">Failed</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (e.reason) { %>
+                      <span class="badge badge-neutral"><%= e.reason %></span>
+                    <% } else { %>
+                      <span style="color: var(--text-muted);">-</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <span style="text-transform: capitalize; font-weight: 600;">
+                      <%= e.channel ? e.channel.charAt(0).toUpperCase() + e.channel.slice(1) : '-' %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if (e.amountCents) { %>
+                      <span class="amount-value">$<%= (e.amountCents/100).toFixed(2) %></span>
+                    <% } else { %>
+                      <span style="color: var(--text-muted);">-</span>
+                    <% } %>
+                  </td>
+              </tr>
+            <% }); %>
+        </tbody>
+      </table>
+        <% } else { %>
+          <div class="empty-state-card">
+            <span class="empty-state-icon">📊</span>
+            <div class="empty-state-title">No events yet</div>
+            <div class="empty-state-text">Waiting for new activity</div>
+          </div>
+        <% } %>
+      </div>
+
+      <% if (displayEvents.length > 0) { %>
+        <div class="pagination">
+          <% if (typeof page !== 'undefined' && page > 1) { %>
+            <a href="/dashboard/events?page=<%= page-1 %>">← Prev</a>
+          <% } %>
+          <% if (typeof page !== 'undefined') { %>
+            <span>Page <%= page || 1 %></span>
+            <a href="/dashboard/events?page=<%= (page || 1) + 1 %>">Next →</a>
+          <% } else { %>
+            <span>Page 1</span>
+            <a href="/dashboard/events?page=2">Next →</a>
+          <% } %>
+        </div>
+      <% } %>
+    </main>
+  </body>
+</html>

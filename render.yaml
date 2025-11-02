@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: autocharge-saver
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npx prisma migrate deploy
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+    healthCheckPath: /api/health
+
+
+
+
+

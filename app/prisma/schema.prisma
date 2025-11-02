@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  whopUserId    String   @unique
+  email         String?
+  tgUserId      String?
+  discordUserId String?
+  twitterHandle String?
+  instagramId   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  clicks   Click[]
+  events   Event[]
+}
+
+model Event {
+  id            String   @id @default(cuid())
+  whopEventId   String?  @unique
+  userId        String
+  type          String
+  amountCents   Int?
+  currency      String?
+  occurredAt    DateTime
+  recovered     Boolean  @default(false)
+  reason        String?
+  channel       String?
+  meta          Json?
+
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, occurredAt])
+  @@index([type, occurredAt])
+}
+
+model Click {
+  id         String   @id @default(cuid())
+  userId     String
+  channel    String
+  messageId  String?
+  clickedAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, clickedAt])
+  @@index([channel, clickedAt])
+}
+
+model WebhookLog {
+  id          String   @id @default(cuid())
+  eventId     String?
+  eventType   String?
+  status      String   // 'success', 'error', 'idempotent', 'invalid'
+  payload     Json?
+  error       String?
+  receivedAt  DateTime @default(now())
+
+  @@index([eventId])
+  @@index([receivedAt])
+}
+
+
+
+

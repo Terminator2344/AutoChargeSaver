@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "buildCommand": "npm install && cd app && npx prisma generate",
+  "builds": [
+    {
+      "src": "app/src/server.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "app/src/server.ts"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "app/src/server.ts": {
+      "maxDuration": 30
+    }
+  }
+}
+
+
+
