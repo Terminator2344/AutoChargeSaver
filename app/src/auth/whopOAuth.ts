@@ -190,7 +190,16 @@ authRouter.get('/auth/whop/callback', async (req, res) => {
     logger.info({ userId: user.id, whopUserId }, 'User authenticated via OAuth');
     logger.info({ redirectUri: env.WHOP_REDIRECT_URI }, '✅ OAuth redirect success');
 
-    res.redirect('/dashboard');
+    // Save session explicitly before redirect (critical for iframe)
+    console.log('💾 Saving session before redirect...', { userId: user.id, sessionId: req.sessionID });
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        logger.error({ error: saveErr }, 'Error saving session before redirect');
+        return res.status(500).json({ error: 'session_save_failed', message: saveErr.message });
+      }
+      console.log('✅ Session saved, redirecting to /dashboard', { userId: req.session?.userId, sessionId: req.sessionID });
+      res.redirect('/dashboard');
+    });
   } catch (error: any) {
     logger.error({ error: error?.message, response: error?.response?.data }, 'OAuth callback error');
     res.status(500).json({ error: 'oauth_failed', message: error?.message });

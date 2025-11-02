@@ -127,16 +127,16 @@ try {
 const sessionConfig: session.SessionOptions = {
   name: 'sid', // Explicit cookie name
   secret: env.SESSION_SECRET || 'dev-secret',
-  resave: true, // Force save session even if not modified
-  saveUninitialized: true, // Save uninitialized sessions (required for auth flow)
+  resave: false, // Don't save session if not modified
+  saveUninitialized: false, // Don't save uninitialized sessions
   rolling: true, // Reset expiration on every request
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+    secure: true, // Always true for iframe (requires HTTPS)
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax', // Important for localhost
+    sameSite: 'none', // Required for iframe cross-site requests
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/', // Explicit path to ensure cookie is sent for all routes
-    domain: undefined, // Don't set domain - allows localhost
+    domain: undefined, // Don't set domain - allows cross-site
   },
 };
 
@@ -148,15 +148,16 @@ app.use(session(sessionConfig));
 
 // Diagnostic middleware to log session reading
 app.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.path === '/dashboard' || req.path === '/auth/dev' || req.path === '/auth/whop') {
-    const cookieHeader = req.headers.cookie || '';
-    console.log('[SESSION-MIDDLEWARE]', {
+  // Log session check for all auth-related paths
+  if (req.path === '/dashboard' || req.path.startsWith('/dashboard') || req.path === '/auth/dev' || req.path === '/auth/whop' || req.path === '/auth/whop/callback') {
+    console.log('SESSION CHECK:', {
       path: req.path,
-      sessionID: req.sessionID,
-      hasSession: !!req.session,
       userId: req.session?.userId,
-      cookieHeader: cookieHeader.substring(0, 150),
-      hasSidInCookie: cookieHeader.includes('sid='),
+      sessionId: req.sessionID,
+      cookies: req.cookies,
+      cookieHeader: req.headers.cookie?.substring(0, 100),
+      hasSession: !!req.session,
+      hasSidInCookie: req.headers.cookie?.includes('sid='),
     });
   }
   next();
