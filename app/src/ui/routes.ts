@@ -172,8 +172,8 @@ uiRouter.get('/dashboard/events', requireAuth, async (req, res, next) => {
       totalCount,
       eventType: eventType || 'all',
       channel: channel || 'all',
-      availableTypes: eventTypes.map(e => e.type),
-      availableChannels: channels.map(c => c.channel).filter(Boolean),
+      availableTypes: eventTypes.map((e: any) => e.type),
+      availableChannels: channels.map((c: any) => c.channel).filter(Boolean),
     });
   } catch (err) {
     next(err);
