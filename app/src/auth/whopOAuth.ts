@@ -105,7 +105,7 @@ authRouter.get('/auth/whop', (req, res) => {
   const state = crypto.randomUUID();
   req.session.oauthState = state;
 
-  const authUrl = new URL('https://api.whop.com/oauth2/authorize');
+  const authUrl = new URL('https://whop.com/oauth2/authorize');
   authUrl.searchParams.set('client_id', env.WHOP_CLIENT_ID);
   authUrl.searchParams.set('redirect_uri', env.WHOP_REDIRECT_URI);
   authUrl.searchParams.set('response_type', 'code');
