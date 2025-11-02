@@ -9,6 +9,9 @@ const EnvSchema = z.object({
     WHOP_CLIENT_ID: z.string().optional(),
     WHOP_CLIENT_SECRET: z.string().optional(),
     WHOP_REDIRECT_URI: z.string().url().optional(),
+    NEXT_PUBLIC_WHOP_APP_ID: z.string().optional(),
+    NEXT_PUBLIC_WHOP_AGENT_USER_ID: z.string().optional(),
+    NEXT_PUBLIC_WHOP_COMPANY_ID: z.string().optional(),
     SESSION_SECRET: z.string().optional(),
     MOCK_LOGIN: z.string().default('false'),
     SMTP_HOST: z.string().optional(),
@@ -47,6 +50,10 @@ if (!parsed.success) {
     process.exit(1);
 }
 const envRaw = parsed.data;
+// Проверка критичных переменных
+if (!envRaw.WHOP_API_KEY) {
+    console.warn('⚠️ Missing WHOP_API_KEY — Whop API calls may fail.');
+}
 // Поддержка EMAIL_* переменных с приоритетом над SMTP_*
 const getEmailConfig = (key) => {
     const emailKey = `EMAIL_${key}`;
@@ -56,6 +63,11 @@ const getEmailConfig = (key) => {
 export const env = {
     ...envRaw,
     PORT: Number(envRaw.PORT || '3000'),
+    // Whop API configuration
+    WHOP_API_KEY: envRaw.WHOP_API_KEY,
+    NEXT_PUBLIC_WHOP_APP_ID: envRaw.NEXT_PUBLIC_WHOP_APP_ID,
+    NEXT_PUBLIC_WHOP_AGENT_USER_ID: envRaw.NEXT_PUBLIC_WHOP_AGENT_USER_ID,
+    NEXT_PUBLIC_WHOP_COMPANY_ID: envRaw.NEXT_PUBLIC_WHOP_COMPANY_ID,
     // Email конфигурация: приоритет EMAIL_* над SMTP_*
     SMTP_HOST: getEmailConfig('HOST'),
     SMTP_PORT: getEmailConfig('PORT'),

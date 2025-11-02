@@ -93,7 +93,7 @@ authRouter.get('/auth/whop', (req, res) => {
     }
     const state = crypto.randomUUID();
     req.session.oauthState = state;
-    const authUrl = new URL('https://whop.com/api/oauth2/authorize');
+    const authUrl = new URL('https://api.whop.com/oauth2/authorize');
     authUrl.searchParams.set('client_id', env.WHOP_CLIENT_ID);
     authUrl.searchParams.set('redirect_uri', env.WHOP_REDIRECT_URI);
     authUrl.searchParams.set('response_type', 'code');
@@ -119,7 +119,7 @@ authRouter.get('/auth/whop/callback', async (req, res) => {
     }
     try {
         // Обмен authorization code на access token
-        const tokenResponse = await axios.post('https://whop.com/api/oauth2/token', {
+        const tokenResponse = await axios.post('https://api.whop.com/oauth2/token', {
             client_id: env.WHOP_CLIENT_ID,
             client_secret: env.WHOP_CLIENT_SECRET,
             code,

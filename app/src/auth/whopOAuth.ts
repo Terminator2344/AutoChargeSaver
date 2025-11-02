@@ -9,6 +9,11 @@ export const authRouter = Router();
 
 // OAuth авторизация - редирект на Whop
 authRouter.get('/auth/whop', (req, res) => {
+  console.log('🚀 [AUTH/whop] route hit');
+  console.log('WHOP_CLIENT_ID:', env.WHOP_CLIENT_ID);
+  console.log('WHOP_REDIRECT_URI:', env.WHOP_REDIRECT_URI);
+  console.log('MOCK_LOGIN:', process.env.MOCK_LOGIN);
+  
   // Check MOCK_LOGIN with highest priority
   if (process.env.MOCK_LOGIN === 'true') {
     const email = 'mock@local';
@@ -100,7 +105,7 @@ authRouter.get('/auth/whop', (req, res) => {
   const state = crypto.randomUUID();
   req.session.oauthState = state;
 
-  const authUrl = new URL('https://whop.com/api/oauth2/authorize');
+  const authUrl = new URL('https://api.whop.com/oauth2/authorize');
   authUrl.searchParams.set('client_id', env.WHOP_CLIENT_ID);
   authUrl.searchParams.set('redirect_uri', env.WHOP_REDIRECT_URI);
   authUrl.searchParams.set('response_type', 'code');
@@ -108,11 +113,16 @@ authRouter.get('/auth/whop', (req, res) => {
   authUrl.searchParams.set('state', state);
 
   logger.info({ state }, 'Redirecting to Whop OAuth');
+  console.log('🌐 Redirecting user to Whop URL:', authUrl.toString());
   res.redirect(authUrl.toString());
 });
 
 // OAuth callback - обмен кода на токен
 authRouter.get('/auth/whop/callback', async (req, res) => {
+  console.log('📩 [AUTH/callback] received request');
+  console.log('Query:', req.query);
+  console.log('Session state:', req.session?.oauthState);
+  
   const { code, state } = req.query;
 
   if (!code || typeof code !== 'string') {
@@ -132,7 +142,8 @@ authRouter.get('/auth/whop/callback', async (req, res) => {
 
   try {
     // Обмен authorization code на access token
-    const tokenResponse = await axios.post('https://whop.com/api/oauth2/token', {
+    console.log('🔑 Exchanging code for token...');
+    const tokenResponse = await axios.post('https://api.whop.com/oauth2/token', {
       client_id: env.WHOP_CLIENT_ID,
       client_secret: env.WHOP_CLIENT_SECRET,
       code,
@@ -140,6 +151,7 @@ authRouter.get('/auth/whop/callback', async (req, res) => {
       redirect_uri: env.WHOP_REDIRECT_URI,
     });
 
+    console.log('✅ Token response:', tokenResponse.data);
     const { access_token } = tokenResponse.data;
 
     // Получить данные пользователя из Whop API
@@ -149,6 +161,7 @@ authRouter.get('/auth/whop/callback', async (req, res) => {
       },
     });
 
+    console.log('👤 User response:', userResponse.data);
     const whopUser = userResponse.data;
     const whopUserId = whopUser.id || whopUser.user_id;
 
