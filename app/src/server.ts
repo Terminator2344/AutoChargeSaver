@@ -27,7 +27,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, '../views'));
+// After compilation, dist/server.js → views are at ../app/views
+app.set('views', path.join(__dirname, '../app/views'));
 
 app.use((req: Request, _res: Response, next: NextFunction) => {
   (req as any).id = req.headers['x-request-id'] || crypto.randomUUID();
@@ -293,12 +294,15 @@ const shutdown = async (signal: string) => {
     }
     
     // Disconnect PostgreSQL session store if used
-    if (sessionStore && 'close' in sessionStore && typeof sessionStore.close === 'function') {
+    if (sessionStore && 'close' in sessionStore) {
       try {
-        await new Promise<void>((resolve) => {
-          sessionStore?.close?.(() => resolve());
-        });
-        logger.info('Session store closed');
+        const closeMethod = (sessionStore as any).close;
+        if (typeof closeMethod === 'function') {
+          await new Promise<void>((resolve) => {
+            closeMethod(() => resolve());
+          });
+          logger.info('Session store closed');
+        }
       } catch (err) {
         logger.warn({ err }, 'Error closing session store');
       }
