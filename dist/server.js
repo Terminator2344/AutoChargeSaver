@@ -73,8 +73,10 @@ app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
 }));
 // CORS must allow credentials for cookies
+// Clean origin URL to prevent invalid header characters
+const cleanOrigin = env.APP_HOST?.trim().replace(/\/$/, '') || env.APP_HOST;
 app.use(cors({
-    origin: env.APP_HOST,
+    origin: cleanOrigin,
     credentials: true, // Critical: must be true for cookies to work
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
