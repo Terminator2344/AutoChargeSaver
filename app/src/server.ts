@@ -9,17 +9,17 @@ import rateLimit from 'express-rate-limit';
 import crypto from 'crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { env } from './config/env';
-import { logger } from './config/logger';
+import { env } from './config/env.js';
+import { logger } from './config/logger.js';
 
 // Diagnostic logging after env load
 console.log('[BOOT]', 'NODE_ENV=', process.env.NODE_ENV, 'MOCK_LOGIN=', process.env.MOCK_LOGIN, 'WHOP_CLIENT_ID=', process.env.WHOP_CLIENT_ID);
-import { whopRouter } from './webhooks/whopWebhook';
-import { recoveryRouter } from './api/recovery';
-import { analyticsRouter } from './api/analytics';
-import { uiRouter } from './ui/routes';
-import { authRouter } from './auth/whopOAuth';
-import { clickRedirectHandler } from './tracking/clickRedirect';
+import { whopRouter } from './webhooks/whopWebhook.js';
+import { recoveryRouter } from './api/recovery.js';
+import { analyticsRouter } from './api/analytics.js';
+import { uiRouter } from './ui/routes.js';
+import { authRouter } from './auth/whopOAuth.js';
+import { clickRedirectHandler } from './tracking/clickRedirect.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -286,7 +286,7 @@ const shutdown = async (signal: string) => {
     
     // Disconnect Prisma
     try {
-      const { prisma } = await import('./config/prisma');
+      const { prisma } = await import('./config/prisma.js');
       await prisma.$disconnect();
       logger.info('Prisma disconnected');
     } catch (err) {
