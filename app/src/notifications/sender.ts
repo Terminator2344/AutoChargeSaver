@@ -1,13 +1,13 @@
-import { env } from '../config/env';
-import { logger } from '../config/logger';
-import { getQueue, withRetries } from './queue';
-import { takeToken } from '../config/rateLimit';
-import { sendEmail } from '../integrations/email';
-import { sendTelegram } from '../integrations/telegram';
-import { sendDiscord } from '../integrations/discord';
-import { sendTwitter } from '../integrations/twitter';
-import { sendInstagram } from '../integrations/instagram';
-import type { Channel } from '../domain/channels';
+import { env } from '../config/env.js';
+import { logger } from '../config/logger.js';
+import { getQueue, withRetries } from './queue.js';
+import { takeToken } from '../config/rateLimit.js';
+import { sendEmail } from '../integrations/email.js';
+import { sendTelegram } from '../integrations/telegram.js';
+import { sendDiscord } from '../integrations/discord.js';
+import { sendTwitter } from '../integrations/twitter.js';
+import { sendInstagram } from '../integrations/instagram.js';
+import type { Channel } from '../domain/channels.js';
 
 interface SendArgs {
   channel: Channel;

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { prisma } from '../config/prisma';
-import { logger } from '../config/logger';
+import { prisma } from '../config/prisma.js';
+import { logger } from '../config/logger.js';
 
 declare module 'express-session' {
   interface SessionData {

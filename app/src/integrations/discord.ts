@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { env } from '../config/env';
+import { env } from '../config/env.js';
 
 export async function sendDiscord(text: string): Promise<{ messageId?: string }> {
   if (!env.DISCORD_WEBHOOK_URL) return {};

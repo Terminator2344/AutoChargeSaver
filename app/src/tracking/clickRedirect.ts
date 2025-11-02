@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { recordClick } from './recorder';
-import { env } from '../config/env';
-import { prisma } from '../config/prisma';
+import { recordClick } from './recorder.js';
+import { env } from '../config/env.js';
+import { prisma } from '../config/prisma.js';
 
 export function makeRecoveryLink(userId: string, opts: { channel?: string; messageId?: string } = {}): string {
   const params = new URLSearchParams();

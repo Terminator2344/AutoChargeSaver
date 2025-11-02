@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 import { Request } from 'express';
 import axios, { AxiosInstance } from 'axios';
-import { logger } from '../config/logger';
-import { env, isDev } from '../config/env';
+import { logger } from '../config/logger.js';
+import { env, isDev } from '../config/env.js';
 
 export function verifyWhopSignature(req: Request): boolean {
   try {

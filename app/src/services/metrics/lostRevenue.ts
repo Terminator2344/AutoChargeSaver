@@ -1,4 +1,4 @@
-import { prisma } from '../../config/prisma';
+import { prisma } from '../../config/prisma.js';
 
 /**
  * Вычисляет потерянную выручку (не восстановленные платежи)

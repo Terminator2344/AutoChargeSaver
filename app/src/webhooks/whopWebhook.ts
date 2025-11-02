@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { verifyWhopSignature, WhopEventPayload } from '../integrations/whop';
-import { prisma } from '../config/prisma';
-import { logger } from '../config/logger';
-import { recoveryMessage } from '../domain/messageTemplates';
-import { send } from '../notifications/sender';
-import { makeRecoveryLink } from '../tracking/clickRedirect';
-import { isRecoveredByClick } from '../domain/attribution';
+import { verifyWhopSignature, WhopEventPayload } from '../integrations/whop.js';
+import { prisma } from '../config/prisma.js';
+import { logger } from '../config/logger.js';
+import { recoveryMessage } from '../domain/messageTemplates.js';
+import { send } from '../notifications/sender.js';
+import { makeRecoveryLink } from '../tracking/clickRedirect.js';
+import { isRecoveredByClick } from '../domain/attribution.js';
 
 export const whopRouter = Router();
 

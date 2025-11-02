@@ -1,5 +1,5 @@
-import { prisma } from '../config/prisma';
-import { env } from '../config/env';
+import { prisma } from '../config/prisma.js';
+import { env } from '../config/env.js';
 
 export async function isRecoveredByClick(userId: string, succeededAt: Date): Promise<{ byClick: boolean; channel?: string }> {
   const windowDays = env.ATTR_WINDOW_DAYS;

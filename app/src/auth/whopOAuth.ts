@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import axios from 'axios';
 import crypto from 'crypto';
-import { env, isDev } from '../config/env';
-import { prisma } from '../config/prisma';
-import { logger } from '../config/logger';
+import { env, isDev } from '../config/env.js';
+import { prisma } from '../config/prisma.js';
+import { logger } from '../config/logger.js';
 
 export const authRouter = Router();
 

@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { prisma } from '../config/prisma';
-import { requireAuth } from '../middleware/auth';
-import { metricsCache, getCacheKey } from '../services/cache';
-import { calculateTimeToRecover } from '../services/metrics/timeToRecover';
-import { calculateLostRevenue } from '../services/metrics/lostRevenue';
-import { calculateChannelConversion } from '../services/metrics/channelConversion';
+import { prisma } from '../config/prisma.js';
+import { requireAuth } from '../middleware/auth.js';
+import { metricsCache, getCacheKey } from '../services/cache.js';
+import { calculateTimeToRecover } from '../services/metrics/timeToRecover.js';
+import { calculateLostRevenue } from '../services/metrics/lostRevenue.js';
+import { calculateChannelConversion } from '../services/metrics/channelConversion.js';
 
 export const uiRouter = Router();
 

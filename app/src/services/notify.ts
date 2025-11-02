@@ -1,7 +1,7 @@
-import { sendTelegram } from '../integrations/telegram';
-import { sendEmail } from '../integrations/email';
-import { env } from '../config/env';
-import { logger } from '../config/logger';
+import { sendTelegram } from '../integrations/telegram.js';
+import { sendEmail } from '../integrations/email.js';
+import { env } from '../config/env.js';
+import { logger } from '../config/logger.js';
 
 export interface NotifyOptions {
   to: {

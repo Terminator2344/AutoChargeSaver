@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { env } from '../config/env';
+import { env } from '../config/env.js';
 
 export async function sendTelegram(tgUserId: string, text: string): Promise<{ messageId?: string }> {
   if (!env.TELEGRAM_BOT_TOKEN) return {};

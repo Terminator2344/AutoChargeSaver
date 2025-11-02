@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { prisma } from '../config/prisma';
-import { requireAuth } from '../middleware/auth';
+import { prisma } from '../config/prisma.js';
+import { requireAuth } from '../middleware/auth.js';
 
 export const analyticsRouter = Router();
 

@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { prisma } from '../config/prisma';
-import { requireAuth } from '../middleware/auth';
-import { makeRecoveryLink } from '../tracking/clickRedirect';
-import { recoveryMessage } from '../domain/messageTemplates';
-import { send } from '../notifications/sender';
+import { prisma } from '../config/prisma.js';
+import { requireAuth } from '../middleware/auth.js';
+import { makeRecoveryLink } from '../tracking/clickRedirect.js';
+import { recoveryMessage } from '../domain/messageTemplates.js';
+import { send } from '../notifications/sender.js';
 
 export const recoveryRouter = Router();
 

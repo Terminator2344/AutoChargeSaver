@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { env } from '../config/env';
+import { env } from '../config/env.js';
 
 export async function sendEmail(to: string, subject: string, text: string, html?: string): Promise<{ messageId?: string }> {
   if (!env.SMTP_HOST || !env.SMTP_PORT) {
