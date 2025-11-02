@@ -8,12 +8,14 @@ import { calculateChannelConversion } from '../services/metrics/channelConversio
 
 export const uiRouter = Router();
 
-uiRouter.get('/dashboard', requireAuth, async (req, res, next) => {
+// Dashboard handler function (reusable for /dashboard and /dashboard/*)
+const dashboardHandler = async (req: any, res: any, next: any) => {
   console.log('[DASHBOARD]', 'Rendering dashboard', {
     userId: (req as any).user?.id,
     sessionId: req.sessionID,
     hasSession: !!req.session,
     cookies: req.headers.cookie?.substring(0, 100),
+    path: req.path,
   });
   try {
     const currentUserId = (req as any).user.id;
@@ -119,8 +121,11 @@ uiRouter.get('/dashboard', requireAuth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
+uiRouter.get('/dashboard', requireAuth, dashboardHandler);
+
+// /dashboard/events must be defined before wildcard to avoid conflicts
 uiRouter.get('/dashboard/events', requireAuth, async (req, res, next) => {
   try {
     const currentUserId = (req as any).user.id;
@@ -180,5 +185,8 @@ uiRouter.get('/dashboard/events', requireAuth, async (req, res, next) => {
   }
 });
 
+// Wildcard route for /dashboard/* - must be after /dashboard/events
+// Handles paths like /dashboard/biz_xxx, /dashboard/app/xxx, etc.
+uiRouter.get('/dashboard/*', requireAuth, dashboardHandler);
 
 
