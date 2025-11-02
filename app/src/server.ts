@@ -102,6 +102,8 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Configure session store (PostgreSQL in production, memory in dev if no DB)
+// ⚠️ IMPORTANT: On Vercel serverless, in-memory store loses sessions between requests!
+// PostgreSQL store is REQUIRED for production on Vercel.
 let sessionStore: session.Store | undefined;
 
 try {
@@ -115,12 +117,51 @@ try {
       // Auto-clean expired sessions every hour (default is 60 minutes)
       pruneSessionInterval: 60,
     });
-    logger.info('Using PostgreSQL session store with auto-cleanup');
+    logger.info('✅ Using PostgreSQL session store with auto-cleanup (sessions will persist across requests)');
+    console.log('✅ PostgreSQL session store initialized - sessions will be stored in database');
   } else {
-    logger.info('Using memory session store (DATABASE_URL not PostgreSQL or not set)');
+    const warning = '⚠️ WARNING: DATABASE_URL not set or not PostgreSQL. Using in-memory session store.';
+    logger.warn(warning + ' Sessions will be lost between requests on Vercel serverless!');
+    console.warn('⚠️ WARNING: DATABASE_URL not configured for PostgreSQL session store');
+    console.warn('⚠️ Sessions will NOT persist between requests on Vercel (in-memory store will reset)');
+    console.warn('⚠️ Set DATABASE_URL=postgresql://user:password@host:port/dbname to enable persistent sessions');
+    if (!env.DATABASE_URL) {
+      console.warn('⚠️ DATABASE_URL environment variable is missing');
+    } else {
+      console.warn('⚠️ DATABASE_URL is set but does not point to PostgreSQL:', env.DATABASE_URL.substring(0, 20) + '...');
+    }
   }
 } catch (error) {
-  logger.warn({ error }, 'Failed to initialize PostgreSQL session store, falling back to memory store');
+  logger.error({ error }, 'Failed to initialize PostgreSQL session store, falling back to memory store');
+  console.error('❌ Error initializing PostgreSQL session store:', error);
+  console.warn('⚠️ Falling back to in-memory store (sessions will be lost on Vercel)');
+}
+
+// Check environment variables for session configuration
+if (!env.SESSION_SECRET) {
+  console.warn('⚠️ WARNING: SESSION_SECRET not set. Using fallback secret (not secure for production!)');
+  logger.warn('SESSION_SECRET not configured - using fallback secret');
+}
+
+// Determine cookie domain based on APP_HOST or current environment
+// For Vercel iframe: use .vercel.app domain to allow cookie across subdomains
+let cookieDomain: string | undefined = undefined;
+if (process.env.VERCEL || env.APP_HOST?.includes('.vercel.app')) {
+  // Extract base domain from APP_HOST or use .vercel.app
+  if (env.APP_HOST?.includes('.vercel.app')) {
+    // Extract domain like 'project-name.vercel.app' -> '.vercel.app'
+    cookieDomain = '.vercel.app';
+    console.log('✅ Cookie domain set to .vercel.app for Vercel deployment');
+  }
+} else if (env.APP_HOST) {
+  try {
+    const url = new URL(env.APP_HOST);
+    // For custom domains, don't set domain (let browser handle it)
+    cookieDomain = undefined;
+    console.log('ℹ️ Custom domain detected, cookie domain not set (allowing browser default)');
+  } catch {
+    cookieDomain = undefined;
+  }
 }
 
 // Session middleware (must be before all routers)
@@ -136,12 +177,15 @@ const sessionConfig: session.SessionOptions = {
     sameSite: 'none', // Required for iframe cross-site requests
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/', // Explicit path to ensure cookie is sent for all routes
-    domain: undefined, // Don't set domain - allows cross-site
+    domain: cookieDomain, // Set to .vercel.app for Vercel, undefined for custom domains
   },
 };
 
 if (sessionStore) {
   sessionConfig.store = sessionStore;
+  console.log('✅ Session store configured: PostgreSQL (persistent)');
+} else {
+  console.warn('⚠️ Session store: in-memory (NOT persistent on Vercel serverless)');
 }
 
 app.use(session(sessionConfig));
@@ -151,13 +195,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   // Log session check for all auth-related paths
   if (req.path === '/dashboard' || req.path.startsWith('/dashboard') || req.path === '/auth/dev' || req.path === '/auth/whop' || req.path === '/auth/whop/callback') {
     console.log('SESSION CHECK:', {
-      path: req.path,
-      userId: req.session?.userId,
       sessionId: req.sessionID,
-      cookies: req.cookies,
-      cookieHeader: req.headers.cookie?.substring(0, 100),
+      userId: req.session?.userId,
+      cookies: req.headers.cookie?.substring(0, 150),
       hasSession: !!req.session,
-      hasSidInCookie: req.headers.cookie?.includes('sid='),
+      hasSidCookie: req.headers.cookie?.includes('sid='),
+      cookieDomain: sessionConfig.cookie?.domain,
     });
   }
   next();
