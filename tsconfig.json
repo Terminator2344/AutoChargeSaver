@@ -11,7 +11,7 @@
     "resolveJsonModule": true,
     "noEmitOnError": true
   },
-  "include": ["app/src/**/*"],
+  "include": ["app/src/**/*", "app/src/types/**/*"],
   "exclude": ["node_modules", "dist", "tests"]
 }
 
