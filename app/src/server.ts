@@ -106,35 +106,55 @@ if (process.env.NODE_ENV !== 'production') {
 // PostgreSQL store is REQUIRED for production on Vercel.
 let sessionStore: session.Store | undefined;
 
+// Safely initialize session store with proper error handling
 try {
-  // Try to use PostgreSQL session store if DATABASE_URL is available and is PostgreSQL
-  if (env.DATABASE_URL && (env.DATABASE_URL.startsWith('postgresql://') || env.DATABASE_URL.startsWith('postgres://'))) {
+  // Check if DATABASE_URL exists and is a valid PostgreSQL connection string
+  const hasDatabaseUrl = !!env.DATABASE_URL && typeof env.DATABASE_URL === 'string' && env.DATABASE_URL.trim().length > 0;
+  const isPostgreSQL = hasDatabaseUrl && (env.DATABASE_URL!.startsWith('postgresql://') || env.DATABASE_URL!.startsWith('postgres://'));
+  
+  if (hasDatabaseUrl && isPostgreSQL) {
+    // Safe initialization of PostgreSQL store
     const PGStore = connectPgSimple(session);
     sessionStore = new PGStore({
-      conString: env.DATABASE_URL,
+      conString: env.DATABASE_URL!,
       tableName: 'session', // Table name in database
       createTableIfMissing: true, // Auto-create session table if missing
       // Auto-clean expired sessions every hour (default is 60 minutes)
       pruneSessionInterval: 60,
     });
     logger.info('✅ Using PostgreSQL session store with auto-cleanup (sessions will persist across requests)');
-    console.log('✅ PostgreSQL session store initialized - sessions will be stored in database');
+    console.log('✅ Using PostgreSQL session store');
   } else {
-    const warning = '⚠️ WARNING: DATABASE_URL not set or not PostgreSQL. Using in-memory session store.';
-    logger.warn(warning + ' Sessions will be lost between requests on Vercel serverless!');
-    console.warn('⚠️ WARNING: DATABASE_URL not configured for PostgreSQL session store');
+    // Fallback to MemoryStore if DATABASE_URL is missing or invalid
+    sessionStore = undefined; // express-session will use MemoryStore by default
+    if (!hasDatabaseUrl) {
+      console.warn('⚠️ DATABASE_URL not set, using MemoryStore');
+      logger.warn('DATABASE_URL not set - using in-memory session store');
+    } else {
+      console.warn('⚠️ DATABASE_URL is set but does not point to PostgreSQL, using MemoryStore');
+      logger.warn('DATABASE_URL is not a PostgreSQL connection string - using in-memory session store');
+    }
     console.warn('⚠️ Sessions will NOT persist between requests on Vercel (in-memory store will reset)');
     console.warn('⚠️ Set DATABASE_URL=postgresql://user:password@host:port/dbname to enable persistent sessions');
-    if (!env.DATABASE_URL) {
-      console.warn('⚠️ DATABASE_URL environment variable is missing');
-    } else {
-      console.warn('⚠️ DATABASE_URL is set but does not point to PostgreSQL:', env.DATABASE_URL.substring(0, 20) + '...');
-    }
   }
+  
+  // Log session store configuration
+  console.log('SESSION STORE CHECK:', {
+    hasDatabaseUrl: !!env.DATABASE_URL,
+    storeType: sessionStore ? 'PostgreSQL' : 'MemoryStore',
+    databaseUrlValid: hasDatabaseUrl && isPostgreSQL,
+  });
 } catch (error) {
+  // Graceful fallback if initialization fails
+  sessionStore = undefined; // express-session will use MemoryStore by default
   logger.error({ error }, 'Failed to initialize PostgreSQL session store, falling back to memory store');
   console.error('❌ Error initializing PostgreSQL session store:', error);
   console.warn('⚠️ Falling back to in-memory store (sessions will be lost on Vercel)');
+  console.log('SESSION STORE CHECK:', {
+    hasDatabaseUrl: !!env.DATABASE_URL,
+    storeType: 'MemoryStore',
+    error: error instanceof Error ? error.message : 'Unknown error',
+  });
 }
 
 // Check environment variables for session configuration
