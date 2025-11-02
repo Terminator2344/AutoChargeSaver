@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm run build && cd app && npx prisma generate",
   "builds": [
     {
       "src": "dist/server.js",
@@ -12,15 +11,7 @@
       "src": "/(.*)",
       "dest": "dist/server.js"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "functions": {
-    "dist/server.js": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }
 
 
