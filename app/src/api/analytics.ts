@@ -43,7 +43,7 @@ analyticsRouter.get('/api/analytics', requireAuth, async (req, res) => {
     prisma.event.findMany({ where: { ...where, type: 'payment_succeeded' }, select: { amountCents: true, occurredAt: true, userId: true } }),
   ]);
 
-  const revenueCents = succeededEvents.reduce((sum, e) => sum + (e.amountCents || 0), 0);
+  const revenueCents = succeededEvents.reduce((sum: number, e: any) => sum + (e.amountCents || 0), 0);
   const ctr = failedCount > 0 ? clicksCount / failedCount : 0;
 
   res.json({ failed: failedCount, succeeded: succeededCount, recoveredByClick, recoveredByWindow, ctr, revenueCents });
