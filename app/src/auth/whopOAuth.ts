@@ -117,13 +117,14 @@ authRouter.get('/auth/whop', (req, res) => {
   res.redirect(authUrl.toString());
 });
 
-// OAuth callback - обмен кода на токен
-authRouter.get('/auth/whop/callback', async (req, res) => {
+// Shared handler for Whop OAuth callback
+async function handleWhopOAuthCallback(req: any, res: any) {
+  console.log('🔁 Handling Whop OAuth callback...');
   console.log('📩 [AUTH/callback] received request');
   console.log('Query:', req.query);
   console.log('Session state:', req.session?.oauthState);
-  
-  const { code, state } = req.query;
+
+  const { code, state } = req.query as { code?: string; state?: string };
 
   if (!code || typeof code !== 'string') {
     logger.warn('OAuth callback missing code');
@@ -141,26 +142,41 @@ authRouter.get('/auth/whop/callback', async (req, res) => {
   }
 
   try {
-    // Обмен authorization code на access token
     console.log('🔑 Exchanging code for token...');
-    const tokenResponse = await axios.post('https://api.whop.com/oauth2/token', {
-      client_id: env.WHOP_CLIENT_ID,
-      client_secret: env.WHOP_CLIENT_SECRET,
-      code,
-      grant_type: 'authorization_code',
-      redirect_uri: env.WHOP_REDIRECT_URI,
-    });
+    let access_token: string | undefined;
+    try {
+      // Primary endpoint
+      const tokenResponse = await axios.post('https://api.whop.com/oauth2/token', {
+        client_id: env.WHOP_CLIENT_ID,
+        client_secret: env.WHOP_CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: env.WHOP_REDIRECT_URI,
+      });
+      access_token = tokenResponse.data?.access_token;
+      console.log('✅ Whop token exchange successful');
+    } catch (primaryErr: any) {
+      console.warn('⚠️ Primary token endpoint failed, trying /v2/oauth/token', primaryErr?.response?.data || primaryErr?.message);
+      // Fallback endpoint as per some docs variants
+      const tokenResponseV2 = await axios.post('https://api.whop.com/v2/oauth/token', {
+        client_id: env.WHOP_CLIENT_ID,
+        client_secret: env.WHOP_CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: env.WHOP_REDIRECT_URI,
+      });
+      access_token = tokenResponseV2.data?.access_token;
+      console.log('✅ Whop token exchange successful (v2)');
+    }
 
-    console.log('✅ Token response:', tokenResponse.data);
-    const { access_token } = tokenResponse.data;
+    if (!access_token) {
+      console.error('❌ Failed to exchange Whop code: no access_token');
+      return res.status(502).json({ error: 'token_exchange_failed' });
+    }
 
-    // Получить данные пользователя из Whop API
     const userResponse = await axios.get('https://api.whop.com/v2/me', {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
+      headers: { Authorization: `Bearer ${access_token}` },
     });
-
     console.log('👤 User response:', userResponse.data);
     const whopUser = userResponse.data;
     const whopUserId = whopUser.id || whopUser.user_id;
@@ -170,41 +186,35 @@ authRouter.get('/auth/whop/callback', async (req, res) => {
       return res.status(500).json({ error: 'invalid_user_data' });
     }
 
-    // Upsert пользователя в БД
     const user = await prisma.user.upsert({
       where: { whopUserId },
-      create: {
-        whopUserId,
-        email: whopUser.email || undefined,
-      },
-      update: {
-        email: whopUser.email || undefined,
-      },
+      create: { whopUserId, email: whopUser.email || undefined },
+      update: { email: whopUser.email || undefined },
     });
 
-    // Сохранить в сессию
     req.session.userId = user.id;
     req.session.whopUserId = user.whopUserId;
-    req.session.oauthState = undefined; // Очистить state
+    req.session.oauthState = undefined;
 
-    logger.info({ userId: user.id, whopUserId }, 'User authenticated via OAuth');
-    logger.info({ redirectUri: env.WHOP_REDIRECT_URI }, '✅ OAuth redirect success');
-
-    // Save session explicitly before redirect (critical for iframe)
     console.log('💾 Saving session before redirect...', { userId: user.id, sessionId: req.sessionID });
-    req.session.save((saveErr) => {
+    req.session.save((saveErr: any) => {
       if (saveErr) {
         logger.error({ error: saveErr }, 'Error saving session before redirect');
         return res.status(500).json({ error: 'session_save_failed', message: saveErr.message });
       }
-      console.log('✅ Session saved, redirecting to /dashboard', { userId: req.session?.userId, sessionId: req.sessionID });
-      res.redirect('/dashboard');
+      console.log('✅ User authenticated and redirected');
+      return res.redirect('/dashboard');
     });
   } catch (error: any) {
+    console.error('❌ Failed to exchange Whop code', error?.response?.data || error?.message);
     logger.error({ error: error?.message, response: error?.response?.data }, 'OAuth callback error');
-    res.status(500).json({ error: 'oauth_failed', message: error?.message });
+    return res.status(500).json({ error: 'oauth_failed', message: error?.message });
   }
-});
+}
+
+// OAuth callback routes (both legacy and API-style)
+authRouter.get('/auth/whop/callback', handleWhopOAuthCallback);
+authRouter.get('/api/whop/callback', handleWhopOAuthCallback);
 
 // DEV ONLY - Mock логин для локальной разработки
 authRouter.get('/auth/dev', async (req, res) => {
