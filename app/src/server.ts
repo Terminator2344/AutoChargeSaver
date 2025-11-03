@@ -297,6 +297,8 @@ app.get('/', (_req, res) => {
 });
 
 app.use(authRouter);
+console.log('✅ Whop callback route mounted at /auth/whop/callback');
+console.log('✅ Whop callback route mounted at /api/whop/callback');
 app.use(whopRouter);
 app.use(recoveryRouter);
 app.use(analyticsRouter);

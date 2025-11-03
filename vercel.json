@@ -1,15 +1,18 @@
 {
   "version": 2,
+  "functions": {
+    "src/app/**/*.ts": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "builds": [
     {
       "src": "app/src/server.ts",
       "use": "@vercel/node"
     }
   ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "app/src/server.ts"
-    }
+  "rewrites": [
+    { "source": "/auth/whop/callback", "destination": "/api/whop/callback" },
+    { "source": "/(.*)", "destination": "/app/src/server.ts" }
   ]
 }
