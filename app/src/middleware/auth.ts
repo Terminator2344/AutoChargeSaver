@@ -41,16 +41,57 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     return next();
   }
 
-  // Check for userId in session FIRST (before any other checks)
+  // If we don't have a session, try Bearer token fallback (Whop SDK inside iframe)
   if (!req.session?.userId) {
-    console.log('[AUTH/requireAuth]', 'NO userId → redirect /auth/whop', 'path=', req.path);
+    const authHeader = req.headers.authorization;
+    const hasBearer = typeof authHeader === 'string' && authHeader.startsWith('Bearer ');
+
+    if (hasBearer) {
+      const token = authHeader.split(' ')[1];
+      console.log('[AUTH/requireAuth]', 'Attempting Bearer token auth via Whop API');
+      try {
+        const meResponse = await fetch('https://api.whop.com/v2/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        } as any);
+        if (meResponse.ok) {
+          const whopUser: any = await meResponse.json();
+          const whopUserId: string | undefined = whopUser?.id;
+          const email: string | undefined = whopUser?.email;
+
+          if (whopUserId) {
+            const user = await prisma.user.upsert({
+              where: { whopUserId },
+              update: { email: email || undefined },
+              create: { whopUserId, email: email || undefined, name: whopUser?.name || null },
+            });
+
+            (req as any).user = user;
+            if (req.session) {
+              req.session.userId = user.id;
+              req.session.whopUserId = user.whopUserId as any;
+            }
+
+            console.log('✅ Authenticated via Bearer token:', user.email, user.id);
+            return next();
+          }
+        } else {
+          const text = await meResponse.text();
+          console.warn('[AUTH/requireAuth] Whop /v2/me response not ok', meResponse.status, text.slice(0, 200));
+        }
+      } catch (err) {
+        console.error('❌ Token verification failed:', err);
+      }
+    }
+
+    // No session and no valid bearer → redirect to login
+    console.log('[AUTH/requireAuth]', 'NO userId and no valid Bearer → redirect /auth/whop', 'path=', req.path);
     logger.info({ 
       path: req.path, 
       hasSession: !!req.session, 
       sessionKeys: req.session ? Object.keys(req.session) : [],
       sessionID: req.sessionID,
       cookies: req.headers.cookie?.substring(0, 100),
-    }, '[AUTH] Missing session userId, redirecting to /auth/whop');
+    }, '[AUTH] Missing session userId and Bearer auth, redirecting to /auth/whop');
     return res.redirect('/auth/whop');
   }
 
